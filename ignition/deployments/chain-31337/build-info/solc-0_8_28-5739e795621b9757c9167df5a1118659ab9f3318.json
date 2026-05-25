@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-5739e795621b9757c9167df5a1118659ab9f3318",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.5.1"
+  },
+  "userSourceNameMap": {
+    "contracts/Day1_AccessControl/AccessControlledVault.sol": "project/contracts/Day1_AccessControl/AccessControlledVault.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Day1_AccessControl/AccessControlledVault.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\ncontract AccessControlledVault {\n    // Owner address\n    address public owner;\n\n    // Rate variable \n    uint256 public conversionRate;\n\n    // Custom error for gas optimization\n    error NotAnOwner();\n\n    // Event emitted when the rate changes\n    event RateChanged(uint256 newRate);\n\n    // Constructor to set the owner and initial conversion rate\n    // 🏗️ 1. Write the constructor that sets the deployer as the owner\n    constructor() {\n        owner = msg.sender;\n    }\n\n    // 🛡️ 2. Modifier using custom error instead of require\n    modifier onlyOwner() {\n        if (msg.sender != owner) {\n            revert NotAnOwner();\n        }\n        _;\n    }\n\n    // ⚙️ 3. Apply the modifier and emit the event\n    function setRate(uint256 _newRate) public onlyOwner {\n        conversionRate = _newRate;\n        emit RateChanged(_newRate);\n    }\n}"
+      }
+    }
+  }
+}
