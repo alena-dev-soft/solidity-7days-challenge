@@ -14,6 +14,8 @@ contract AccessControlledVault {
     // Event emitted when the rate changes
     event RateChanged(uint256 newRate);
 
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
     // Constructor to set the owner and initial conversion rate
     // 🏗️ 1. Write the constructor that sets the deployer as the owner
     constructor() {
@@ -32,5 +34,10 @@ contract AccessControlledVault {
     function setRate(uint256 _newRate) public onlyOwner {
         conversionRate = _newRate;
         emit RateChanged(_newRate);
+    }
+
+    function renounceOwnership() external onlyOwner {
+        emit OwnershipTransferred(owner, address(0)); 
+        owner = address(0);
     }
 }
