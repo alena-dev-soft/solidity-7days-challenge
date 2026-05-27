@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-04b5797736011ea8ca08f991cb2551aaf421c24f",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.5.1"
+  },
+  "userSourceNameMap": {
+    "contracts/Day2_Escrow/SimpleEscrow.sol": "project/contracts/Day2_Escrow/SimpleEscrow.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Day2_Escrow/SimpleEscrow.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\ncontract SimpleEscrow {\n    // Custom errors for gas optimization\n    error OnlyArbiter();\n    error InvalidState();\n    error TransferFailed();\n    error NothingToWithdraw();\n\n    enum State { AwaitingPayment, AwaitingDelivery, Completed, Refunded }\n\n    address public immutable buyer;\n    address public immutable seller;\n    address public immutable arbiter;\n    \n    uint256 public immutable amount;\n    State public currentState;\n\n    // Mapping to track pull-payments balance\n    mapping(address => uint256) public balanceOf;\n\n    event Deposited(address indexed buyer, uint256 amount);\n    event Released();\n    event RefundedToBuyer();\n    event Withdrawn(address indexed payee, uint256 amount);\n\n    modifier onlyArbiter() {\n        if (msg.sender != arbiter) revert OnlyArbiter();\n        _;\n    }\n\n    constructor(address _seller, address _arbiter, uint256 _amount) {\n        buyer = msg.sender;\n        seller = _seller;\n        arbiter = _arbiter;\n        amount = _amount;\n        currentState = State.AwaitingPayment;\n    }\n\n    /**\n     * @notice Buyer deposits the fixed escrow amount.\n     */\n    function deposit() external payable {\n        if (msg.sender != buyer) revert InvalidState();\n        if (currentState != State.AwaitingPayment) revert InvalidState();\n        if (msg.value != amount) revert InvalidState();\n\n        currentState = State.AwaitingDelivery;\n        emit Deposited(buyer, msg.value);\n    }\n\n    /**\n     * @notice Arbiter confirms delivery and unlocks funds for the seller (Pull allocation).\n     */\n    function release() external onlyArbiter {\n        if (currentState != State.AwaitingDelivery) revert InvalidState();\n\n        currentState = State.Completed;\n        \n        // 🛠️ TODO: Fill the gap. Allocate the escrow amount to the seller inside mapping\n        // ...\n        balanceOf[seller] += amount;\n\n        emit Released();\n    }\n\n    /**\n     * @notice Arbiter can return funds to the buyer if conditions are not met.\n     */\n    function refund() external onlyArbiter {\n        if (currentState != State.AwaitingDelivery) revert InvalidState();\n\n        currentState = State.Refunded;\n\n        // 🛠️ TODO: Fill the gap. Allocate the escrow amount back to the buyer inside mapping\n        // ...\n        balanceOf[buyer] += amount;\n\n        emit RefundedToBuyer();\n    }\n\n    /**\n     * @notice Users pull their available funds using this function.\n     * @dev Implements the secure Pull-over-Push pattern via low-level .call\n     */\n    function withdraw() external {\n        // 1. Checks\n        uint256 payment = balanceOf[msg.sender];\n        if (payment == 0) revert NothingToWithdraw();\n\n        // 2. Effects\n        // 🛠️ TODO: Fill the gap. Clear user's balance before sending to prevent reentrancy (hint: C-E-I pattern!)\n        // ...\n        balanceOf[msg.sender] = 0;\n\n        // 3. Interactions\n        // 🛠️ TODO: Fill the gap. Send ETH using low-level .call and handle success/failure via custom error\n        // ...\n        (bool success, ) = msg.sender.call{value: payment}(\"\");\n        if (!success) revert TransferFailed();\n\n        emit Withdrawn(msg.sender, payment);\n    }\n}"
+      }
+    }
+  }
+}
